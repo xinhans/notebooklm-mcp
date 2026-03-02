@@ -3329,9 +3329,9 @@ export class ToolHandlers {
         // Navigate to NotebookLM homepage
         await page.goto('https://notebooklm.google.com/', {
           waitUntil: 'networkidle',
-          timeout: 30000,
+          timeout: 60000,
         });
-        await randomDelay(1500, 2500);
+        await randomDelay(3000, 5000);
 
         await sendProgress?.('Clicking create button...', 2, 5);
         log.info('  🖱️  Looking for Create notebook button...');

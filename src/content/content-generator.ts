@@ -108,7 +108,8 @@ export class ContentGenerator {
         log.info(`  Found ${config.displayName} button: ${buttonResult.selector}`);
 
         // Click the button to start generation
-        await realisticClick(this.page, buttonResult.selector, true);
+        //await realisticClick(this.page, buttonResult.selector, false);
+        await this.page.click(buttonResult.selector);
         log.info(`  Clicked ${config.displayName} button`);
 
         // Step 3.5: Handle format selection if this content type has format options
@@ -132,10 +133,10 @@ export class ContentGenerator {
         log.info(`  Started ${config.displayName} generation via Studio button`);
 
         return {
-            success: true,
-            contentType: input.type,
-            status: 'generating'
-          };
+          success: true,
+          contentType: input.type,
+          status: 'generating',
+        };
       }
 
       // Step 4: Fallback to chat-based generation
@@ -501,7 +502,6 @@ export class ContentGenerator {
           ready: false,
           error: errorText || `${config.displayName} generation failed`,
         };
-        
       }
 
       // Check if content now exists
