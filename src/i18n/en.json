@@ -47,13 +47,13 @@
   },
 
   "sourceNames": {
-    "pastedText": "Pasted text"
+    "pastedText": "Pasted Text"
   },
 
   "contentTypes": {
     "audio": "Audio",
     "video": "Video",
-    "presentation": "Presentation",
+    "presentation": "Slide Deck",
     "slides": "Slides",
     "infographic": "Infographic",
     "report": "Report",

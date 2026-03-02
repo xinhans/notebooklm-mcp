@@ -138,7 +138,7 @@ const DEFAULTS: Config = {
   instanceProfileMaxCount: 20,
 
   // UI Locale (default: French - matches most common Google Account language)
-  uiLocale: 'fr',
+  uiLocale: 'en',
 
   // Browser channel: 'chromium' works in Docker, 'chrome' for local with Google Chrome installed
   browserChannel: 'chromium',

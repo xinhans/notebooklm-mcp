@@ -504,7 +504,7 @@ export class ContentGenerator {
     );
 
     const startTime = Date.now();
-    const pollInterval = 2000; // Poll every 2 seconds
+    const pollInterval = 15000; // Poll every 15 seconds
 
     while (Date.now() - startTime < config.waitTimeout) {
       // Check for errors
@@ -516,6 +516,7 @@ export class ContentGenerator {
           ready: false,
           error: errorText || `${config.displayName} generation failed`,
         };
+        
       }
 
       // Check if content now exists
@@ -525,15 +526,6 @@ export class ContentGenerator {
           source: 'studio',
           ready: true,
         };
-      }
-
-      // Check for progress indicators
-      const progressEl = await this.page.$('[role="progressbar"], .progress-bar, .loading');
-      if (progressEl) {
-        const progress = await progressEl.getAttribute('aria-valuenow');
-        if (progress) {
-          log.info(`  Generation progress: ${progress}%`);
-        }
       }
 
       await this.page.waitForTimeout(pollInterval);

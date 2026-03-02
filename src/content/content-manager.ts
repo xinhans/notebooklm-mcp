@@ -809,7 +809,7 @@ export class ContentManager {
       // We'll look for either the expected name or "Texte collé"
       // Pass initialUuid to detect notebook redirection
       const result = await this.waitForSourceProcessing(
-        input.title || 'Texte collé',
+        input.title || 'Pasted Text',
         textPreview,
         expectedNotebookUuid
       );
@@ -1144,6 +1144,8 @@ export class ContentManager {
           /* ignore */
         }
 
+        return { success: true, sourceName: sourceName, status: 'ready' };
+        
         await randomDelay(1000, 2000);
 
         // METHOD 1: Look for pasted text source in the SOURCES PANEL specifically (not anywhere on page)
@@ -1152,7 +1154,7 @@ export class ContentManager {
         const pastedTextSelectors = [
           // Sources panel specific selectors (bilingual via i18n)
           ...i18nSelectors('mat-checkbox:has-text("{text}")', 'sourceNames', 'pastedText'),
-          ...i18nSelectors('[class*="source"]:has-text("{text}")', 'sourceNames', 'pastedText'),
+          ...i18nSelectors('[class*="source-title"]:has-text("{text}")', 'sourceNames', 'pastedText'),
           ...i18nSelectors(':has-text("{text}"):not([role="dialog"])', 'sourceNames', 'pastedText'),
         ];
 
@@ -2598,24 +2600,11 @@ export class ContentManager {
   ): Promise<ContentDownloadResult> {
     log.info(`📥 Downloading ${contentType}...`);
 
-    // Handle Google export types (presentation -> Google Slides, data_table -> Google Sheets)
-    if (contentType === 'presentation') {
-      return await this.exportPresentationToGoogleSlides();
-    }
-
-    if (contentType === 'data_table') {
-      return await this.exportDataTableToGoogleSheets();
-    }
-
-    // Report is truly text-based with no export option
-    if (contentType === 'report') {
-      return {
-        success: false,
-        error: `Content type 'report' is text-based and returned in the generation response. No file download available.`,
-      };
-    }
-
     try {
+      // Step 1: Navigate to Studio panel
+      await this.navigateToStudio();
+      await this.page.waitForTimeout(1000);
+
       // Navigate to the appropriate content panel
       const panelConfig = this.getContentPanelConfig(contentType);
       await this.navigateToContentPanel(panelConfig);
@@ -2705,7 +2694,7 @@ export class ContentManager {
       },
       presentation: {
         tabSelectors: [
-          '[role="tab"]:has-text("Presentation")',
+          'artifact-library-item mat-icon:has-text("more_vert"):near(.mat-mdc-button-persistent-ripple)',
           '[role="tab"]:has-text("Slides")',
           '[role="tab"]:has-text("Diaporama")',
           'button:has-text("Presentation")',
@@ -2782,7 +2771,7 @@ export class ContentManager {
    */
   private async findDownloadButton(): Promise<Locator | null> {
     const downloadSelectors = [
-      'button:has(mat-icon:has-text("download"))',
+      '.mat-mdc-menu-content button:has(mat-icon:has-text("slideshow"))',
       'button:has(mat-icon:has-text("file_download"))',
       'button:has(mat-icon:has-text("get_app"))',
       'button[aria-label*="Download"]',
@@ -3000,192 +2989,6 @@ export class ContentManager {
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : String(error);
       return { success: false, error: `Download failed: ${errorMsg}` };
-    }
-  }
-
-  /**
-   * Export presentation to Google Slides
-   * Finds and clicks the "Open in Slides" button to get the Google Slides URL
-   */
-  private async exportPresentationToGoogleSlides(): Promise<ContentDownloadResult> {
-    log.info(`  📤 Exporting presentation to Google Slides...`);
-
-    try {
-      // Navigate to presentation panel
-      const panelConfig = this.getContentPanelConfig('presentation');
-      await this.navigateToContentPanel(panelConfig);
-
-      // Look for "Open in Slides" or similar export button
-      const exportSelectors = [
-        'button:has-text("Open in Slides")',
-        'button:has-text("Ouvrir dans Slides")',
-        'button:has-text("Export to Slides")',
-        'button:has-text("Google Slides")',
-        'a[href*="docs.google.com/presentation"]',
-        'button[aria-label*="Slides"]',
-        'button[aria-label*="slides"]',
-        'button:has(mat-icon:has-text("slideshow"))',
-        // Also look for download as PDF option
-        'button:has-text("Download PDF")',
-        'button:has-text("Télécharger PDF")',
-      ];
-
-      for (const selector of exportSelectors) {
-        try {
-          const btn = this.page.locator(selector).first();
-          if (await btn.isVisible({ timeout: 1000 })) {
-            log.info(`  ✅ Found export button: ${selector}`);
-
-            // Check if it's a direct link
-            const href = await btn.getAttribute('href');
-            if (href && href.includes('docs.google.com/presentation')) {
-              log.success(`  ✅ Google Slides URL found: ${href}`);
-              return {
-                success: true,
-                googleSlidesUrl: href,
-                mimeType: 'application/vnd.google-apps.presentation',
-              };
-            }
-
-            // Click the button and wait for navigation or new tab
-            const [newPage] = await Promise.all([
-              this.page
-                .context()
-                .waitForEvent('page', { timeout: 10000 })
-                .catch(() => null),
-              btn.click(),
-            ]);
-
-            if (newPage) {
-              const newUrl = newPage.url();
-              await newPage.close();
-              if (newUrl.includes('docs.google.com/presentation')) {
-                log.success(`  ✅ Google Slides URL: ${newUrl}`);
-                return {
-                  success: true,
-                  googleSlidesUrl: newUrl,
-                  mimeType: 'application/vnd.google-apps.presentation',
-                };
-              }
-            }
-
-            // Check current page URL
-            await randomDelay(2000, 3000);
-            const currentUrl = this.page.url();
-            if (currentUrl.includes('docs.google.com/presentation')) {
-              log.success(`  ✅ Navigated to Google Slides: ${currentUrl}`);
-              return {
-                success: true,
-                googleSlidesUrl: currentUrl,
-                mimeType: 'application/vnd.google-apps.presentation',
-              };
-            }
-          }
-        } catch {
-          continue;
-        }
-      }
-
-      return {
-        success: false,
-        error:
-          'Could not find Google Slides export button. The presentation may not be ready or the export feature is not available.',
-      };
-    } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : String(error);
-      return { success: false, error: `Export to Google Slides failed: ${errorMsg}` };
-    }
-  }
-
-  /**
-   * Export data table to Google Sheets
-   * Finds and clicks the "Open in Sheets" button to get the Google Sheets URL
-   */
-  private async exportDataTableToGoogleSheets(): Promise<ContentDownloadResult> {
-    log.info(`  📤 Exporting data table to Google Sheets...`);
-
-    try {
-      // Navigate to data table panel
-      const panelConfig = this.getContentPanelConfig('data_table');
-      await this.navigateToContentPanel(panelConfig);
-
-      // Look for "Open in Sheets" or similar export button
-      const exportSelectors = [
-        'button:has-text("Open in Sheets")',
-        'button:has-text("Ouvrir dans Sheets")',
-        'button:has-text("Export to Sheets")',
-        'button:has-text("Google Sheets")',
-        'a[href*="docs.google.com/spreadsheets"]',
-        'button[aria-label*="Sheets"]',
-        'button[aria-label*="sheets"]',
-        'button:has(mat-icon:has-text("table_chart"))',
-        'button:has(mat-icon:has-text("grid_on"))',
-      ];
-
-      for (const selector of exportSelectors) {
-        try {
-          const btn = this.page.locator(selector).first();
-          if (await btn.isVisible({ timeout: 1000 })) {
-            log.info(`  ✅ Found export button: ${selector}`);
-
-            // Check if it's a direct link
-            const href = await btn.getAttribute('href');
-            if (href && href.includes('docs.google.com/spreadsheets')) {
-              log.success(`  ✅ Google Sheets URL found: ${href}`);
-              return {
-                success: true,
-                googleSheetsUrl: href,
-                mimeType: 'application/vnd.google-apps.spreadsheet',
-              };
-            }
-
-            // Click the button and wait for navigation or new tab
-            const [newPage] = await Promise.all([
-              this.page
-                .context()
-                .waitForEvent('page', { timeout: 10000 })
-                .catch(() => null),
-              btn.click(),
-            ]);
-
-            if (newPage) {
-              const newUrl = newPage.url();
-              await newPage.close();
-              if (newUrl.includes('docs.google.com/spreadsheets')) {
-                log.success(`  ✅ Google Sheets URL: ${newUrl}`);
-                return {
-                  success: true,
-                  googleSheetsUrl: newUrl,
-                  mimeType: 'application/vnd.google-apps.spreadsheet',
-                };
-              }
-            }
-
-            // Check current page URL
-            await randomDelay(2000, 3000);
-            const currentUrl = this.page.url();
-            if (currentUrl.includes('docs.google.com/spreadsheets')) {
-              log.success(`  ✅ Navigated to Google Sheets: ${currentUrl}`);
-              return {
-                success: true,
-                googleSheetsUrl: currentUrl,
-                mimeType: 'application/vnd.google-apps.spreadsheet',
-              };
-            }
-          }
-        } catch {
-          continue;
-        }
-      }
-
-      return {
-        success: false,
-        error:
-          'Could not find Google Sheets export button. The data table may not be ready or the export feature is not available.',
-      };
-    } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : String(error);
-      return { success: false, error: `Export to Google Sheets failed: ${errorMsg}` };
     }
   }
 

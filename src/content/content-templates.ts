@@ -538,7 +538,7 @@ export const CONTENT_CONFIGS: Record<ContentType, ContentTypeConfig> = {
       'button:has-text("Presentation")',
       'button:has-text("Generate slides")',
       'button:has-text("Create presentation")',
-      'button:has-text("Diaporama")',
+      'basic-create-artifact-button mat-icon:has-text("tablet")',
       // Aria patterns
       'button[aria-label*="slides" i]',
       'button[aria-label*="presentation" i]',
@@ -547,7 +547,7 @@ export const CONTENT_CONFIGS: Record<ContentType, ContentTypeConfig> = {
       // Icon-based patterns
       'button:has(mat-icon:has-text("slideshow"))',
       'button:has(mat-icon:has-text("present_to_all"))',
-      'button:has(mat-icon:has-text("co_present"))',
+      'button:has(mat-icon:has-text("tablet"))',
       // Card/section patterns
       '[class*="slides"] button',
       '[class*="presentation"] button',
@@ -624,7 +624,7 @@ export const CONTENT_CONFIGS: Record<ContentType, ContentTypeConfig> = {
       '[class*="slides-preview"]',
       '[class*="presentation-card"][class*="ready"]',
       '[data-component="presentation"]',
-      '[class*="slides-viewer"]',
+      'artifact-library mat-icon:has-text("tablet")',
     ],
     chatPromptTemplate:
       'Create a {formatInstruction} presentation for this notebook.{lengthInstruction}{languageInstruction} {formatDescription}{customInstructions}',
