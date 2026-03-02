@@ -3386,10 +3386,10 @@ export class ToolHandlers {
 
         // Wait for navigation to new notebook
         await page.waitForURL(/notebooklm\.google\.com\/notebook\//, { timeout: 30000 });
-        await randomDelay(2000, 3000);
+        await randomDelay(5000, 8000);
 
         // Get the new notebook URL
-        const notebookUrl = page.url();
+        const notebookUrl = page.url().split('?')[0];
         const notebookIdMatch = notebookUrl.match(/notebook\/([a-f0-9-]+)/);
         const notebookId = notebookIdMatch ? notebookIdMatch[1] : 'unknown';
 

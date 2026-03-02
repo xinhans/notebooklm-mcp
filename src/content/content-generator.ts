@@ -131,26 +131,11 @@ export class ContentGenerator {
 
         log.info(`  Started ${config.displayName} generation via Studio button`);
 
-        // Wait for generation to complete
-        const waitResult = await this.waitForContentGeneration(input.type, config);
-
-        if (waitResult.ready) {
-          log.success(`  ${config.displayName} generated successfully via Studio`);
-          return {
+        return {
             success: true,
             contentType: input.type,
-            status: 'ready',
-            textContent: waitResult.content,
+            status: 'generating'
           };
-        } else if (waitResult.error) {
-          log.error(`  ${config.displayName} generation failed: ${waitResult.error}`);
-          return {
-            success: false,
-            contentType: input.type,
-            status: 'failed',
-            error: waitResult.error,
-          };
-        }
       }
 
       // Step 4: Fallback to chat-based generation
