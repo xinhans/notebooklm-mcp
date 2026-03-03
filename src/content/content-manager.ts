@@ -1145,7 +1145,7 @@ export class ContentManager {
         }
 
         return { success: true, sourceName: sourceName, status: 'ready' };
-        
+
         await randomDelay(1000, 2000);
 
         // METHOD 1: Look for pasted text source in the SOURCES PANEL specifically (not anywhere on page)
@@ -1154,7 +1154,11 @@ export class ContentManager {
         const pastedTextSelectors = [
           // Sources panel specific selectors (bilingual via i18n)
           ...i18nSelectors('mat-checkbox:has-text("{text}")', 'sourceNames', 'pastedText'),
-          ...i18nSelectors('[class*="source-title"]:has-text("{text}")', 'sourceNames', 'pastedText'),
+          ...i18nSelectors(
+            '[class*="source-title"]:has-text("{text}")',
+            'sourceNames',
+            'pastedText'
+          ),
           ...i18nSelectors(':has-text("{text}"):not([role="dialog"])', 'sourceNames', 'pastedText'),
         ];
 
@@ -2629,7 +2633,7 @@ export class ContentManager {
 
       // Save the file
       const suggestedName = download.suggestedFilename();
-      const savePath = outputPath || path.join(CONFIG.dataDir, suggestedName);
+      const savePath = path.join(outputPath || CONFIG.dataDir, suggestedName);
       await download.saveAs(savePath);
 
       // Determine MIME type
@@ -2771,7 +2775,7 @@ export class ContentManager {
    */
   private async findDownloadButton(): Promise<Locator | null> {
     const downloadSelectors = [
-      '.mat-mdc-menu-content button:has(mat-icon:has-text("slideshow"))',
+      '.mat-mdc-menu-content button:has(mat-icon:has-text("picture_as_pdf"))',
       'button:has(mat-icon:has-text("file_download"))',
       'button:has(mat-icon:has-text("get_app"))',
       'button[aria-label*="Download"]',

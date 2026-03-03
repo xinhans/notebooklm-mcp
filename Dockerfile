@@ -9,8 +9,8 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 RUN groupadd -r notebooklm && useradd -r -g notebooklm -d /home/notebooklm notebooklm \
-    && mkdir -p /home/notebooklm /app /data \
-    && chown -R notebooklm:notebooklm /home/notebooklm /app /data \
+    && mkdir -p /home/notebooklm /app /data /download \
+    && chown -R notebooklm:notebooklm /home/notebooklm /app /data /download \
     && mkdir -p /tmp/.X11-unix \
     && chmod 1777 /tmp/.X11-unix
 
