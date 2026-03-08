@@ -112,6 +112,38 @@ export class ContentGenerator {
         await this.page.click(buttonResult.selector);
         log.info(`  Clicked ${config.displayName} button`);
 
+        await this.page.click("button div:has-text('Short')");
+
+        const inputSelector =
+          'div.text-form-field-container.ng-star-inserted div.mat-mdc-form-field-infix textarea';
+        // Clear any existing text first
+        const inputEl = await this.page.$(inputSelector);
+        if (inputEl) {
+          await inputEl.click();
+          await this.page.keyboard.press('Control+A');
+          await this.page.keyboard.press('Backspace');
+          await randomDelay(200, 400);
+        }
+
+        // Type the message with human-like behavior
+        log.info(`  Typing message with human-like behavior...`);
+        await humanType(this.page, inputSelector, input.customInstructions ?? '', {
+          withTypos: false, // No typos for prompts to avoid confusion
+          wpm: 150, // Faster typing for long prompts
+        });
+
+        // Small pause before submitting
+        await randomDelay(500, 1000);
+
+        // Submit with Enter key
+        log.info(`  Submitting message...`);
+        await this.page.click("button span:has-text('Generate')");
+
+        // Small pause after submit
+        await randomDelay(1000, 1500);
+
+        log.info(`  Message sent`);
+
         // Step 3.5: Handle format selection if this content type has format options
         const formatSelected = await this.selectFormat(input, config);
         if (formatSelected) {
