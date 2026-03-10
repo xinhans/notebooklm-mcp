@@ -112,6 +112,7 @@ export class ContentGenerator {
         await this.page.click(buttonResult.selector);
         log.info(`  Clicked ${config.displayName} button`);
 
+        await this.page.click("mat-radio-button span:has-text('Presenter Slides')");
         await this.page.click("button div:has-text('Short')");
 
         const inputSelector =
