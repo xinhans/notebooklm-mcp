@@ -538,7 +538,7 @@ export const CONTENT_CONFIGS: Record<ContentType, ContentTypeConfig> = {
       'button:has-text("Presentation")',
       'button:has-text("Generate slides")',
       'button:has-text("Create presentation")',
-      'basic-create-artifact-button:has(mat-icon:has-text("tablet")) mat-icon:has-text("edit")',
+      'basic-create-artifact-button:has(mat-icon:has-text("tablet")) mat-icon:has-text("chevron_forward")',
       // Aria patterns
       'button[aria-label*="slides" i]',
       'button[aria-label*="presentation" i]',
